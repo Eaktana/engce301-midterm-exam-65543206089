@@ -1,25 +1,25 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const https = require('https');
-const fs = require('fs');
+const https = require("https");
+const fs = require("fs");
 
-require('dotenv').config();
+require("dotenv").config();
 
 console.log(process.env.APP_NAME);
-console.log(process.env.API_URL); 
-console.log(process.env.PORT); 
+console.log(process.env.API_URL);
+console.log(process.env.PORT);
 
 class Server {
   constructor() {
-
-    if (process.env.NODE_ENV == "development"){
+    if (process.env.NODE_ENV == "development") {
       this.key = "server.key";
       this.cert = "server.crt";
-    }
-    else{
-      this.key = "/etc/ssl/server.key";
-      this.cert = "/etc/ssl/server.crt";
+    } else {
+      if (process.env.NODE_ENV == "production") {
+        this.key = "/etc/ssl/server.key";
+        this.cert = "/etc/ssl/server.crt";
+      }
     }
 
     // Load SSL Certificates
@@ -47,9 +47,7 @@ class Server {
     this.app.use(express.json());
 
     // Pick up React index.html file
-    this.app.use(
-      express.static(path.join(__dirname, "../../client/build"))
-    );
+    this.app.use(express.static(path.join(__dirname, "../../client/build")));
   }
 
   // Bind controllers to routes
@@ -57,13 +55,13 @@ class Server {
     this.app.use(this.paths.auth, require("../routes/auth"));
     this.app.use(this.paths.homepage, require("../routes/homepage"));
     // Catch all requests that don't match any route
+    /*
     this.app.get("*", (req, res) => {
-      res.sendFile(
-        path.join(__dirname, "../../client/build/index.html")
-      );
+      res.sendFile(path.join(__dirname, "../../client/build/index.html"));
     });
+    */
   }
-/*
+  /*
   listen() {
     this.app.listen(this.port, () => {
       console.log("Server running on port: ", this.port);
@@ -71,15 +69,12 @@ class Server {
   }
 */
 
-listen() {
-
-  // Start HTTPS server
-  https.createServer(this.sslOptions, this.app).listen(this.httpsPort, () => {
-    console.log(`HTTPS Server running on port: ${this.httpsPort}`);
-  });
-}
-
-
+  listen() {
+    // Start HTTPS server
+    https.createServer(this.sslOptions, this.app).listen(this.httpsPort, () => {
+      console.log(`HTTPS Server running on port: ${this.httpsPort}`);
+    });
+  }
 }
 
 module.exports = Server;
